@@ -1,3 +1,4 @@
+include .env
 # Simple Makefile for a Go project
 
 # Build the application
@@ -5,8 +6,8 @@ all: build
 
 build:
 	@echo "Building..."
-	@templ generate
-	
+	@./templ generate
+
 	@go build -o main cmd/api/main.go
 
 # Run the application
@@ -31,9 +32,19 @@ docker-down:
 		docker-compose down; \
 	fi
 
+
+# Migrate DB
+migrate-up:
+	@./migrate -database ${POSTGRESQL_URL} -path db/migrations up
+
+migrate-down:
+	@./migrate -database ${POSTGRESQL_URL} -path db/migrations down
+
+
 # Test the application
 test:
 	@echo "Testing..."
+	@echo ${DB_DATABASE}
 	@go test ./tests -v
 
 # Clean the binary

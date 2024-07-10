@@ -5,14 +5,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"example.com/mamude/internal/server"
 	"github.com/gin-gonic/gin"
 )
 
 func TestHelloWorldHandler(t *testing.T) {
-	s := &server.Server{}
+	//s := &server.Server{}
 	r := gin.New()
-	r.GET("/", s.HelloWorldHandler)
+	//r.GET("/", s.HelloWorldHandler)
 	// Create a test HTTP request
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {

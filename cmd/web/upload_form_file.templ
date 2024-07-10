@@ -11,22 +11,27 @@ templ UploadFormFile() {
 }
 
 templ InnerForm() {
-	<div class="row">
+	<div class="row" hx-ext="response-targets">
 		<div class="col">
 			<h4 class="mb-3">Selecione o arquivo</h4>
-			<form hx-post="/send_file" method="POST" enctype="multipart/form-data" hx-target="#result">
+			<form id="form" hx-post="/send_file" method="POST"
+				hx-encoding="multipart/form-data" hx-target="#result" hx-target-4*="#errors">
 				<div class="row align-items-start">
 					<div class="col">
 						<input type="file" name="file" class="form-control" id="file"/>
-						<div class="invalid-feedback">
-							Valid first name is required.
-						</div>
 					</div>
 				</div>
 				<hr class="my-4"/>
-				<button class="w-100 btn btn-primary btn-lg" type="submit">Iniciar processamento</button>
+				<button class="w-100 btn btn-primary btn-lg" type="submit" >Iniciar processamento</button>
+				<progress id="progress" value="0" max="100"></progress>
 				<div id="result"></div>
+				<div id="errors"></div>
 			</form>
+			<script>
+        		htmx.on("#form", "htmx:xhr:progress", function(evt) {
+          		htmx.find("#progress").setAttribute("value", evt.detail.loaded/evt.detail.total * 100)
+        	});
+    		</script>
 		</div>
 	</div>
 }

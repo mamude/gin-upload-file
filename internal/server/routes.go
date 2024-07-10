@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"path/filepath"
 
@@ -9,6 +8,8 @@ import (
 	"github.com/google/uuid"
 
 	"example.com/mamude/cmd/web"
+	"example.com/mamude/internal/helpers"
+	"example.com/mamude/internal/service"
 
 	"github.com/a-h/templ"
 )
@@ -17,16 +18,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
 	r.MaxMultipartMemory = 6 << 20
 
-	r.GET("/health", s.healthHandler)
-
 	r.Static("/assets", "./cmd/web/assets")
 
+	r.GET("/health", s.healthHandler)
 	r.GET("/", func(c *gin.Context) {
 		templ.Handler(web.UploadFormFile()).ServeHTTP(c.Writer, c.Request)
 	})
 
 	r.POST("/send_file", s.sendFileHandler)
-
 	r.POST("/hello", func(c *gin.Context) {
 		web.HelloWebHandler(c.Writer, c.Request)
 	})
@@ -41,16 +40,19 @@ func (s *Server) healthHandler(c *gin.Context) {
 func (s *Server) sendFileHandler(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Campo requirido: %s": err.Error()})
+		helpers.BadRequest(c, err)
 		return
 	}
 
 	// upload the file
 	fileName := "tmp/" + filepath.Base(uuid.New().String()+".txt")
 	if err := c.SaveUploadedFile(file, fileName); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Arquivo inválido: %s": err.Error()})
+		helpers.BadRequest(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": fmt.Sprintf("%s processado!", file.Filename)})
+	// handle file
+	service.ImportData(fileName)
+	// send response
+	helpers.StatusOK(c, file.Filename)
 }

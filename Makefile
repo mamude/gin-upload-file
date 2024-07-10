@@ -2,11 +2,15 @@ include .env
 # Simple Makefile for a Go project
 
 # Build the application
-all: build
+all: tools build
+
+tools:
+	@curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.1/migrate.linux-386.tar.gz | tar xvz -C bin
+	@curl -L https://github.com/a-h/templ/releases/download/v0.2.747/templ_Linux_x86_64.tar.gz | tar xvz -C bin
 
 build:
 	@echo "Building..."
-	@./templ generate
+	@./bin/templ generate
 
 	@go build -o main cmd/api/main.go
 
@@ -35,10 +39,10 @@ docker-down:
 
 # Migrate DB
 migrate-up:
-	@./migrate -database ${POSTGRESQL_URL} -path db/migrations up
+	@./bin/migrate -database ${POSTGRESQL_URL} -path db/migrations up
 
 migrate-down:
-	@./migrate -database ${POSTGRESQL_URL} -path db/migrations down
+	@./bin/migrate -database ${POSTGRESQL_URL} -path db/migrations down
 
 
 # Test the application
@@ -51,6 +55,8 @@ test:
 clean:
 	@echo "Cleaning..."
 	@rm -f main
+	@rm -f tmp/*
+
 
 # Live Reload
 watch:

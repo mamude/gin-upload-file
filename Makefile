@@ -45,7 +45,6 @@ migrate-down:
 # Test the application
 test:
 	@echo "Testing..."
-	@echo ${DB_DATABASE}
 	@go test ./tests -v
 
 # Clean the binary

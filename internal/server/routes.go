@@ -1,46 +1,47 @@
 package server
 
 import (
+	"math"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	"example.com/mamude/cmd/web"
 	"example.com/mamude/internal/helpers"
 	"example.com/mamude/internal/service"
-
-	"github.com/a-h/templ"
+	"example.com/mamude/internal/types"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
-	r.MaxMultipartMemory = 6 << 20
+	r.LoadHTMLGlob("cmd/web/templates/*")
 
 	r.Static("/assets", "./cmd/web/assets")
 
 	r.GET("/health", s.healthHandler)
 	r.GET("/", func(c *gin.Context) {
-		templ.Handler(web.UploadFormFile()).ServeHTTP(c.Writer, c.Request)
+		c.HTML(http.StatusOK, "form.html", nil)
 	})
-
 	r.POST("/send_file", s.sendFileHandler)
-	r.POST("/hello", func(c *gin.Context) {
-		web.HelloWebHandler(c.Writer, c.Request)
-	})
 
 	return r
 }
 
 func (s *Server) healthHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, s.db.Health())
+	c.JSON(http.StatusOK, s.DB.Health())
 }
 
 func (s *Server) sendFileHandler(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		helpers.BadRequest(c, err)
+		return
+	}
+
+	if !helpers.ValidateFile(file) {
+		helpers.BadRequestForFile(c, "arquivo inválido!")
 		return
 	}
 
@@ -51,8 +52,15 @@ func (s *Server) sendFileHandler(c *gin.Context) {
 		return
 	}
 
+	// counter
+	start := time.Now()
 	// handle file
-	service.ImportData(fileName)
+	customers := service.SanitizeData(fileName)
+	// save to database
+	records := s.DB.SaveCustomers(c, customers)
 	// send response
-	helpers.StatusOK(c, file.Filename)
+	seconds := time.Since(start).Seconds()
+	seconds = math.Round(seconds*100) / 100
+	data := types.Data{Seconds: seconds, Records: records}
+	c.HTML(http.StatusCreated, "result.html", gin.H{"data": data})
 }

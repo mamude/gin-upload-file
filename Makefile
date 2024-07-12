@@ -6,13 +6,10 @@ all: tools build
 
 tools:
 	@curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.1/migrate.linux-386.tar.gz | tar xvz -C bin
-	@curl -L https://github.com/a-h/templ/releases/download/v0.2.747/templ_Linux_x86_64.tar.gz | tar xvz -C bin
 
 build:
 	@echo "Building..."
-	@./bin/templ generate
-
-	@go build -o main cmd/api/main.go
+	@go build -o bin/main cmd/api/main.go
 
 # Run the application
 run:
@@ -54,7 +51,7 @@ test:
 # Clean the binary
 clean:
 	@echo "Cleaning..."
-	@rm -f main
+	@rm -f bin/main
 	@rm -f tmp/*
 
 

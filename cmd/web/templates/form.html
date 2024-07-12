@@ -1,0 +1,52 @@
+{{ template "base" .}}
+{{ define "content" }}
+<h1 class="text-body-emphasis">Desafio Golang</h1>
+<p class="fs-5">Serviço de manipulação de dados e persistência em base de dados relacional.</p>
+<hr class="my-4"/>
+
+<div class="row g-5" hx-ext="response-targets">
+    <div class="col-md-6">
+        <h4 class="mb-3">Selecione o arquivo</h4>
+        <form
+            id="form"
+            hx-post="/send_file"
+            method="POST"
+            hx-encoding="multipart/form-data"
+            hx-target="#data-table-body"
+            hx-target-4*="#errors"
+            hx-swap="beforeend"
+            hx-indicator="#spinner"
+        >
+            <div class="row align-items-start">
+                <div class="col">
+                    <input type="file" name="file" class="form-control" id="file"/>
+                </div>
+            </div>
+            <button class="w-100 btn btn-primary btn-lg mt-4 mb-4" type="submit">
+                <span id="spinner" class="spinner-border spinner-border-sm htmx-indicator" aria-hidden="true"></span> Iniciar processamento
+            </button>
+        </form>
+        <div id="errors" class="card text-bg-danger text-center p-3 errors"></div>
+    </div>
+    <div class="col-md-6">
+        <h4 class="mb-3">Resultados</h4>
+        <div class="card text-bg-primary text-center p-3">
+            <figure class="mb-0">
+                <blockquote class="blockquote">
+                    <p>Tempo de processamento</p>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Segundos</th>
+                                <th scope="col">Registros</th>
+                            </tr>
+                        </thead>
+                        <tbody id="data-table-body">
+                        </tbody>
+                    </table>
+                </blockquote>
+            </figure>
+        </div>
+    </div>
+</div>
+{{ end }}

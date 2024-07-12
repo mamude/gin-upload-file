@@ -14,8 +14,7 @@ import (
 
 type Server struct {
 	Port int
-
-	DB database.Service
+	DB   database.PgxIface
 }
 
 func NewServer() *http.Server {

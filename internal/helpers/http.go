@@ -23,5 +23,5 @@ func BadRequestForFile(c *gin.Context, message string) {
 
 func ValidateFile(file *multipart.FileHeader) bool {
 	headers := file.Header.Get("Content-Type")
-	return headers == "text/plain"
+	return headers == "text/plain" || headers == "application/octet-stream"
 }

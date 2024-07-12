@@ -3,6 +3,7 @@ package server
 import (
 	"math"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -10,17 +11,18 @@ import (
 	"github.com/google/uuid"
 
 	"example.com/mamude/internal/helpers"
+	"example.com/mamude/internal/repository"
 	"example.com/mamude/internal/service"
 	"example.com/mamude/internal/types"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
-	r.LoadHTMLGlob("cmd/web/templates/*")
 
-	r.Static("/assets", "./cmd/web/assets")
+	r.LoadHTMLGlob(os.Getenv("TEMPLATE"))
+	r.Static("/assets", os.Getenv("ASSETS"))
 
-	r.GET("/health", s.healthHandler)
+	r.GET("/ping", s.pingHandler)
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "form.html", nil)
 	})
@@ -29,14 +31,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 	return r
 }
 
-func (s *Server) healthHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, s.DB.Health())
+func (s *Server) pingHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"ping": "pong"})
 }
 
 func (s *Server) sendFileHandler(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		helpers.BadRequest(c, err)
+		helpers.BadRequestForFile(c, "selecione um arquivo!")
 		return
 	}
 
@@ -57,7 +59,8 @@ func (s *Server) sendFileHandler(c *gin.Context) {
 	// handle file
 	customers := service.SanitizeData(fileName)
 	// save to database
-	records := s.DB.SaveCustomers(c, customers)
+	repo := repository.NewCustomerRepository(s.DB)
+	records := repo.SaveData(c, customers)
 	// send response
 	seconds := time.Since(start).Seconds()
 	seconds = math.Round(seconds*100) / 100

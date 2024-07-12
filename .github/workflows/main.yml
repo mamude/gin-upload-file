@@ -1,0 +1,26 @@
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write        # required for posting comments
+      contents: write             # required for git push
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+
+      - name: Test                # this should generate cover.out
+        run: make test
+
+      - name: Go Beautiful HTML Coverage
+        uses: 'gha-common/go-beautiful-html-coverage@v1'

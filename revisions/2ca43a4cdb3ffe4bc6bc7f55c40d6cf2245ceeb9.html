@@ -1,0 +1,712 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Expires" content="0" />
+		<title>api: Go Coverage Report</title>
+		<script src="../index.js?ad79d67a7b27030a910cdcdaaaf1e441"></script>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">example.com/mamude/cmd/api/main.go (0.0%)</option>
+				
+				<option value="file1">example.com/mamude/internal/database/database.go (0.0%)</option>
+				
+				<option value="file2">example.com/mamude/internal/helpers/cnpj.go (0.0%)</option>
+				
+				<option value="file3">example.com/mamude/internal/helpers/cpf.go (0.0%)</option>
+				
+				<option value="file4">example.com/mamude/internal/helpers/db.go (0.0%)</option>
+				
+				<option value="file5">example.com/mamude/internal/helpers/http.go (50.0%)</option>
+				
+				<option value="file6">example.com/mamude/internal/helpers/parsers.go (0.0%)</option>
+				
+				<option value="file7">example.com/mamude/internal/helpers/utils.go (0.0%)</option>
+				
+				<option value="file8">example.com/mamude/internal/repository/customer.go (23.1%)</option>
+				
+				<option value="file9">example.com/mamude/internal/server/routes.go (82.1%)</option>
+				
+				<option value="file10">example.com/mamude/internal/server/server.go (0.0%)</option>
+				
+				<option value="file11">example.com/mamude/internal/service/import_data.go (47.6%)</option>
+				
+				<option value="file12">example.com/mamude/internal/types/customer.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "fmt"
+
+        "example.com/mamude/internal/server"
+)
+
+func main() <span class="cov0" title="0">{
+
+        server := server.NewServer()
+
+        err := server.ListenAndServe()
+        if err != nil </span><span class="cov0" title="0">{
+                panic(fmt.Sprintf("cannot start server: %s", err))</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package database
+
+import (
+        "context"
+        "fmt"
+        "log"
+        "os"
+        "time"
+
+        "github.com/jackc/pgx/v5"
+        "github.com/jackc/pgx/v5/pgconn"
+        _ "github.com/jackc/pgx/v5/stdlib"
+        _ "github.com/joho/godotenv/autoload"
+)
+
+var (
+        database = os.Getenv("DB_DATABASE")
+        password = os.Getenv("DB_PASSWORD")
+        username = os.Getenv("DB_USERNAME")
+        port     = os.Getenv("DB_PORT")
+        host     = os.Getenv("DB_HOST")
+        schema   = os.Getenv("DB_SCHEMA")
+)
+
+type PgxIface interface {
+        Begin(context.Context) (pgx.Tx, error)
+        Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+        QueryRow(context.Context, string, ...interface{}) pgx.Row
+        Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+        Ping(context.Context) error
+        Prepare(context.Context, string, string) (*pgconn.StatementDescription, error)
+        Close(context.Context) error
+        CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error)
+}
+
+func New() PgxIface <span class="cov0" title="0">{
+        ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+        defer cancel()
+
+        connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&amp;search_path=%s", username, password, host, port, database, schema)
+        db, err := pgx.Connect(ctx, connStr)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err)
+        }</span>
+        <span class="cov0" title="0">return db</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package helpers
+
+import (
+        "fmt"
+        "regexp"
+)
+
+var (
+        cnpjFirstDigitTable  = []int{5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2}
+        cnpjSecondDigitTable = []int{6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2}
+)
+
+const (
+        // CNPJFormatPattern is the pattern for string replacement
+        // with Regex
+        CNPJFormatPattern string = `([\d]{2})([\d]{3})([\d]{3})([\d]{4})([\d]{2})`
+)
+
+// CNPJ type definition
+type CNPJ string
+
+// NewCNPJ is a helper function to convert and clean a new CNPJ
+// from a string
+func NewCNPJ(s string) CNPJ <span class="cov0" title="0">{
+        return CNPJ(Clean(s))
+}</span>
+
+// IsValid returns if CNPJ is a valid CNPJ document
+func (c *CNPJ) IsValid() bool <span class="cov0" title="0">{
+        return ValidateCNPJ(string(*c))
+}</span>
+
+// String returns a formatted CNPJ document
+// 00.000.000/0001-00
+func (c *CNPJ) String() string <span class="cov0" title="0">{
+
+        str := string(*c)
+
+        if !c.IsValid() </span><span class="cov0" title="0">{
+                return str
+        }</span>
+
+        <span class="cov0" title="0">expr, err := regexp.Compile(CNPJFormatPattern)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return str
+        }</span>
+
+        <span class="cov0" title="0">return expr.ReplaceAllString(str, "$1.$2.$3/$4-$5")</span>
+}
+
+// ValidateCNPJ validates a CNPJ document
+// You should use without punctuation
+func ValidateCNPJ(cnpj string) bool <span class="cov0" title="0">{
+
+        if len(cnpj) != 14 </span><span class="cov0" title="0">{
+                return false
+        }</span>
+
+        <span class="cov0" title="0">firstPart := cnpj[:12]
+        sum1 := sumDigit(firstPart, cnpjFirstDigitTable)
+        rest1 := sum1 % 11
+        d1 := 0
+
+        if rest1 &gt;= 2 </span><span class="cov0" title="0">{
+                d1 = 11 - rest1
+        }</span>
+
+        <span class="cov0" title="0">secondPart := fmt.Sprintf("%s%d", firstPart, d1)
+        sum2 := sumDigit(secondPart, cnpjSecondDigitTable)
+        rest2 := sum2 % 11
+        d2 := 0
+
+        if rest2 &gt;= 2 </span><span class="cov0" title="0">{
+                d2 = 11 - rest2
+        }</span>
+
+        <span class="cov0" title="0">finalPart := fmt.Sprintf("%s%d", secondPart, d2)
+        return finalPart == cnpj</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package helpers
+
+import (
+        "fmt"
+        "regexp"
+        "strconv"
+)
+
+var (
+        cpfFirstDigitTable  = []int{10, 9, 8, 7, 6, 5, 4, 3, 2}
+        cpfSecondDigitTable = []int{11, 10, 9, 8, 7, 6, 5, 4, 3, 2}
+)
+
+const (
+        // CPFFormatPattern is the pattern for string replacement
+        // with Regex
+        CPFFormatPattern string = `([\d]{3})([\d]{3})([\d]{3})([\d]{2})`
+)
+
+// CPF type definition
+type CPF string
+
+// NewCPF is a helper function to convert and clean a new CPF
+// from a string
+func NewCPF(s string) CPF <span class="cov0" title="0">{
+        return CPF(Clean(s))
+}</span>
+
+// IsValid returns if CPF is a valid CPF document
+func (c *CPF) IsValid() bool <span class="cov0" title="0">{
+        return ValidateCPF(string(*c))
+}</span>
+
+// String returns a formatted CPF document
+// 000.000.000-00
+func (c *CPF) String() string <span class="cov0" title="0">{
+
+        str := string(*c)
+
+        if !c.IsValid() </span><span class="cov0" title="0">{
+                return str
+        }</span>
+
+        <span class="cov0" title="0">expr, err := regexp.Compile(CPFFormatPattern)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return str
+        }</span>
+
+        <span class="cov0" title="0">return expr.ReplaceAllString(str, "$1.$2.$3-$4")</span>
+}
+
+// ValidateCPF validates a CPF document
+// You should use without punctuation
+func ValidateCPF(cpf string) bool <span class="cov0" title="0">{
+        if len(cpf) != 11 </span><span class="cov0" title="0">{
+                return false
+        }</span>
+
+        <span class="cov0" title="0">firstPart := cpf[0:9]
+        sum := sumDigit(firstPart, cpfFirstDigitTable)
+
+        r1 := sum % 11
+        d1 := 0
+
+        if r1 &gt;= 2 </span><span class="cov0" title="0">{
+                d1 = 11 - r1
+        }</span>
+
+        <span class="cov0" title="0">secondPart := firstPart + strconv.Itoa(d1)
+
+        dsum := sumDigit(secondPart, cpfSecondDigitTable)
+
+        r2 := dsum % 11
+        d2 := 0
+
+        if r2 &gt;= 2 </span><span class="cov0" title="0">{
+                d2 = 11 - r2
+        }</span>
+
+        <span class="cov0" title="0">finalPart := fmt.Sprintf("%s%d%d", firstPart, d1, d2)
+        return finalPart == cpf</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package helpers
+
+import "database/sql"
+
+func CheckDBError(err error) <span class="cov0" title="0">{
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+}
+
+func CheckDBErrorTx(tx *sql.Tx, err error) <span class="cov0" title="0">{
+        if err != nil </span><span class="cov0" title="0">{
+                tx.Rollback()
+                panic(err)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package helpers
+
+import (
+        "mime/multipart"
+        "net/http"
+
+        "github.com/gin-gonic/gin"
+)
+
+func StatusOK(c *gin.Context, msg string) <span class="cov0" title="0">{
+        c.JSON(http.StatusCreated, gin.H{"message": msg})
+}</span>
+
+func BadRequest(c *gin.Context, err error) <span class="cov0" title="0">{
+        if err != nil </span><span class="cov0" title="0">{
+                c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": err.Error()})
+        }</span>
+}
+
+func BadRequestForFile(c *gin.Context, message string) <span class="cov8" title="1">{
+        c.HTML(http.StatusBadRequest, "error.html", gin.H{"error": message})
+}</span>
+
+func ValidateFile(file *multipart.FileHeader) bool <span class="cov8" title="1">{
+        headers := file.Header.Get("Content-Type")
+        return headers == "text/plain" || headers == "application/octet-stream"
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package helpers
+
+import (
+        "strconv"
+        "strings"
+        "time"
+)
+
+func ParseCPF(value string) string <span class="cov0" title="0">{
+        return value
+}</span>
+
+func ParseCNPJ(value string) string <span class="cov0" title="0">{
+        if value == "NULL" </span><span class="cov0" title="0">{
+                return ""
+        }</span>
+        <span class="cov0" title="0">return value</span>
+}
+
+func ParseDate(value string) time.Time <span class="cov0" title="0">{
+        if value == "NULL" </span><span class="cov0" title="0">{
+                return time.Now()
+        }</span>
+        <span class="cov0" title="0">layout := "2006-01-02"
+        date, err := time.Parse(layout, value)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+        <span class="cov0" title="0">return date</span>
+}
+
+func ParseDecimal(value string) float64 <span class="cov0" title="0">{
+        if value == "NULL" </span><span class="cov0" title="0">{
+                return 0
+        }</span>
+        <span class="cov0" title="0">value = strings.Replace(value, ",", ".", 1)
+        decimal, err := strconv.ParseFloat(value, 32)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+        <span class="cov0" title="0">return decimal</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package helpers
+
+import (
+        "strconv"
+        "strings"
+)
+
+func sumDigit(s string, table []int) int <span class="cov0" title="0">{
+
+        if len(s) != len(table) </span><span class="cov0" title="0">{
+                return 0
+        }</span>
+
+        <span class="cov0" title="0">sum := 0
+
+        for i, v := range table </span><span class="cov0" title="0">{
+                c := string(s[i])
+                d, err := strconv.Atoi(c)
+                if err == nil </span><span class="cov0" title="0">{
+                        sum += v * d
+                }</span>
+        }
+
+        <span class="cov0" title="0">return sum</span>
+}
+
+// Clean can be used for cleaning formatted documents
+func Clean(s string) string <span class="cov0" title="0">{
+        s = strings.Replace(s, ".", "", -1)
+        s = strings.Replace(s, "-", "", -1)
+        s = strings.Replace(s, "/", "", -1)
+        return s
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package repository
+
+import (
+        "example.com/mamude/internal/database"
+        "example.com/mamude/internal/helpers"
+        "example.com/mamude/internal/types"
+        "github.com/gin-gonic/gin"
+        "github.com/jackc/pgx/v5"
+)
+
+type CustomerRepository struct {
+        db database.PgxIface
+}
+
+func NewCustomerRepository(db database.PgxIface) *CustomerRepository <span class="cov8" title="1">{
+        return &amp;CustomerRepository{
+                db: db,
+        }
+}</span>
+
+func (c *CustomerRepository) SaveData(ctx *gin.Context, customers []types.Customer) int64 <span class="cov8" title="1">{
+        // tratar os dados e validá-los
+        if len(customers) &gt; 0 </span><span class="cov0" title="0">{
+                var customersValid []types.Customer
+                for _, customer := range customers </span><span class="cov0" title="0">{
+                        customer.ValidateCPF(customer.CPF)
+                        customer.ValidateMostFrequentStore(customer.MostFrequentStore)
+                        customer.ValidateLastPurchaseStore(customer.LastPurchaseStore)
+                        customersValid = append(customersValid, customer)
+                }</span>
+
+                // enviar os dados em batch, otimizando o desempenho
+                // https://pkg.go.dev/github.com/jackc/pgx/v5@v5.3.0#hdr-Copy_Protocol
+                <span class="cov0" title="0">copyCount, err := c.db.CopyFrom(
+                        ctx,
+                        pgx.Identifier{"customers"},
+                        []string{
+                                "cpf",
+                                "private",
+                                "incomplete",
+                                "date_last_purchase",
+                                "average_ticket",
+                                "last_purchase_ticket",
+                                "most_frequent_store",
+                                "last_purchase_store",
+                        },
+                        pgx.CopyFromSlice(len(customers), func(i int) ([]any, error) </span><span class="cov0" title="0">{
+                                return []any{
+                                        customersValid[i].CPF,
+                                        customersValid[i].Private,
+                                        customersValid[i].Incomplete,
+                                        customersValid[i].DateLastPurchase,
+                                        customersValid[i].AverageTicket,
+                                        customersValid[i].LastPurchaseTicket,
+                                        customersValid[i].MostFrequentStore,
+                                        customersValid[i].LastPurchaseStore,
+                                }, nil
+                        }</span>),
+                )
+                <span class="cov0" title="0">helpers.CheckDBError(err)
+                return copyCount</span>
+        } else<span class="cov8" title="1"> {
+                return 0
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package server
+
+import (
+        "math"
+        "net/http"
+        "os"
+        "path/filepath"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/google/uuid"
+
+        "example.com/mamude/internal/helpers"
+        "example.com/mamude/internal/repository"
+        "example.com/mamude/internal/service"
+        "example.com/mamude/internal/types"
+)
+
+func (s *Server) RegisterRoutes() http.Handler <span class="cov8" title="1">{
+        r := gin.Default()
+
+        r.LoadHTMLGlob(os.Getenv("TEMPLATE"))
+        r.Static("/assets", os.Getenv("ASSETS"))
+
+        r.GET("/ping", s.pingHandler)
+        r.GET("/", func(c *gin.Context) </span><span class="cov8" title="1">{
+                c.HTML(http.StatusOK, "form.html", nil)
+        }</span>)
+        <span class="cov8" title="1">r.POST("/send_file", s.sendFileHandler)
+
+        return r</span>
+}
+
+func (s *Server) pingHandler(c *gin.Context) <span class="cov0" title="0">{
+        c.JSON(http.StatusOK, gin.H{"ping": "pong"})
+}</span>
+
+func (s *Server) sendFileHandler(c *gin.Context) <span class="cov8" title="1">{
+        file, err := c.FormFile("file")
+        if err != nil </span><span class="cov8" title="1">{
+                helpers.BadRequestForFile(c, "selecione um arquivo!")
+                return
+        }</span>
+
+        <span class="cov8" title="1">if !helpers.ValidateFile(file) </span><span class="cov0" title="0">{
+                helpers.BadRequestForFile(c, "arquivo inválido!")
+                return
+        }</span>
+
+        // upload the file
+        <span class="cov8" title="1">fileName := "tmp/" + filepath.Base(uuid.New().String()+".txt")
+        if err := c.SaveUploadedFile(file, fileName); err != nil </span><span class="cov0" title="0">{
+                helpers.BadRequest(c, err)
+                return
+        }</span>
+
+        // counter
+        <span class="cov8" title="1">start := time.Now()
+        // handle file
+        customers := service.SanitizeData(fileName)
+        // save to database
+        repo := repository.NewCustomerRepository(s.DB)
+        records := repo.SaveData(c, customers)
+        // send response
+        seconds := time.Since(start).Seconds()
+        seconds = math.Round(seconds*100) / 100
+        data := types.Data{Seconds: seconds, Records: records}
+        c.HTML(http.StatusCreated, "result.html", gin.H{"data": data})</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package server
+
+import (
+        "fmt"
+        "net/http"
+        "os"
+        "strconv"
+        "time"
+
+        _ "github.com/joho/godotenv/autoload"
+
+        "example.com/mamude/internal/database"
+)
+
+type Server struct {
+        Port int
+        DB   database.PgxIface
+}
+
+func NewServer() *http.Server <span class="cov0" title="0">{
+        port, _ := strconv.Atoi(os.Getenv("PORT"))
+        NewServer := &amp;Server{
+                Port: port,
+                DB:   database.New(),
+        }
+
+        // Declare Server config
+        server := &amp;http.Server{
+                Addr:         fmt.Sprintf(":%d", NewServer.Port),
+                Handler:      NewServer.RegisterRoutes(),
+                IdleTimeout:  time.Minute,
+                ReadTimeout:  10 * time.Second,
+                WriteTimeout: 30 * time.Second,
+        }
+
+        return server
+}</span>
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package service
+
+import (
+        "bufio"
+        "log"
+        "os"
+        "strconv"
+        "strings"
+
+        "example.com/mamude/internal/helpers"
+        "example.com/mamude/internal/types"
+)
+
+const (
+        cpf                = 0
+        private            = 1
+        incomplete         = 2
+        dateLastPurchase   = 3
+        averageTicket      = 4
+        lastPurchaseTicket = 5
+        mostFrequentStore  = 6
+        lastPurchaseStore  = 7
+)
+
+func checkError(err error) <span class="cov8" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("unable to read file %v", err)
+        }</span>
+}
+
+func SanitizeData(fileName string) []types.Customer <span class="cov8" title="1">{
+        file, err := os.Open(fileName)
+        checkError(err)
+
+        // fechar o arquivo
+        defer file.Close()
+
+        // iniciar a leitura do arquivo
+        scanner := bufio.NewScanner(file)
+        scanner.Split(bufio.ScanLines)
+        // ignorar a primeira linha (headers)
+        scanner.Scan()
+        customers := []types.Customer{}
+
+        for scanner.Scan() </span><span class="cov0" title="0">{
+                field := strings.Fields(scanner.Text())
+
+                // parsers
+                cpf := helpers.ParseCPF(field[cpf])
+                private, _ := strconv.Atoi(field[private])
+                incomplete, _ := strconv.Atoi(field[incomplete])
+                dateLastPurchase := helpers.ParseDate(field[dateLastPurchase])
+                averageTicket := helpers.ParseDecimal(field[averageTicket])
+                lastPurchaseTicket := helpers.ParseDecimal(field[lastPurchaseTicket])
+                mostFrequentStore := helpers.ParseCNPJ(field[mostFrequentStore])
+                lastPurchaseStore := helpers.ParseCNPJ(field[lastPurchaseStore])
+
+                customers = append(customers,
+                        types.Customer{
+                                CPF:                cpf,
+                                Private:            private,
+                                Incomplete:         incomplete,
+                                DateLastPurchase:   dateLastPurchase,
+                                AverageTicket:      averageTicket,
+                                LastPurchaseTicket: lastPurchaseTicket,
+                                MostFrequentStore:  mostFrequentStore,
+                                LastPurchaseStore:  lastPurchaseStore,
+                        })
+        }</span>
+
+        <span class="cov8" title="1">return customers</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package types
+
+import (
+        "time"
+
+        "example.com/mamude/internal/helpers"
+)
+
+type Customer struct {
+        CPF                string
+        Private            int
+        Incomplete         int
+        DateLastPurchase   time.Time
+        AverageTicket      float64
+        LastPurchaseTicket float64
+        MostFrequentStore  string
+        LastPurchaseStore  string
+}
+
+func (c *Customer) ValidateCPF(value string) <span class="cov0" title="0">{
+        cpf := helpers.NewCPF(value)
+        if !cpf.IsValid() </span><span class="cov0" title="0">{
+                c.CPF = "invalid"
+        }</span>
+        <span class="cov0" title="0">c.CPF = cpf.String()</span>
+}
+
+func (c *Customer) ValidateMostFrequentStore(value string) <span class="cov0" title="0">{
+        cnpj := helpers.NewCNPJ(value)
+        if !cnpj.IsValid() </span><span class="cov0" title="0">{
+                c.MostFrequentStore = "invalid"
+        }</span>
+        <span class="cov0" title="0">c.MostFrequentStore = cnpj.String()</span>
+}
+
+func (c *Customer) ValidateLastPurchaseStore(value string) <span class="cov0" title="0">{
+        cnpj := helpers.NewCNPJ(value)
+        if !cnpj.IsValid() </span><span class="cov0" title="0">{
+                c.LastPurchaseStore = "invalid"
+        }</span>
+        <span class="cov0" title="0">c.LastPurchaseStore = cnpj.String()</span>
+}
+</pre>
+		
+		</div>
+	</body>
+</html>

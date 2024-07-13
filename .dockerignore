@@ -1,0 +1,17 @@
+*.yml
+*.md
+*.out
+
+./github
+./vscode
+bin/
+db/
+tests/
+tmp/
+
+.air*
+.env
+.gitignore
+
+Dockerfile
+Makefile

@@ -16,24 +16,15 @@ run:
 
 # Create DB container
 docker-run:
-	@if docker compose up -d 2>/dev/null; then \
-		: ; \
-	else \
-		echo "Falling back to Docker Compose V1"; \
-		docker-compose up; \
-	fi
+	@docker compose up -d
 
 # Shutdown DB container
 docker-down:
-	@if docker compose down 2>/dev/null; then \
-		: ; \
-	else \
-		echo "Falling back to Docker Compose V1"; \
-		docker-compose down; \
-	fi
+	@docker compose down
 
 
 # Migrate DB
+POSTGRESQL_URL=postgres://admin:admin@localhost:5432/neoway?sslmode=disable
 migrate-up:
 	@./bin/migrate -database ${POSTGRESQL_URL} -path db/migrations up
 
@@ -42,15 +33,16 @@ migrate-down:
 
 
 # Test the application
-test:
+test-local:
 	@echo "Testing..."
 	@go test ./tests -v
 
 # Clean the binary
-clean:
+clean-local:
 	@echo "Cleaning..."
 	@rm -f bin/main
 	@rm -f tmp/*
+	@rm -f temp/*
 
 
 # Live Reload

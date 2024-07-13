@@ -48,7 +48,8 @@ func (s *Server) sendFileHandler(c *gin.Context) {
 	}
 
 	// upload the file
-	fileName := "tmp/" + filepath.Base(uuid.New().String()+".txt")
+	tempFiles := os.Getenv("TEMP_FILES")
+	fileName := tempFiles + filepath.Base(uuid.New().String()+".txt")
 	if err := c.SaveUploadedFile(file, fileName); err != nil {
 		helpers.BadRequest(c, err)
 		return

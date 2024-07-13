@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Expires" content="0" />
+		<title>server: Go Coverage Report</title>
+		<script src="../index.js?ad79d67a7b27030a910cdcdaaaf1e441"></script>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">example.com/mamude/internal/server/routes.go (84.6%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package server
+
+import (
+        "math"
+        "net/http"
+        "os"
+        "path/filepath"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/google/uuid"
+
+        "example.com/mamude/internal/helpers"
+        "example.com/mamude/internal/repository"
+        "example.com/mamude/internal/service"
+        "example.com/mamude/internal/types"
+)
+
+func (s *Server) RegisterRoutes() http.Handler {
+        r := gin.Default()
+
+        r.LoadHTMLGlob(os.Getenv("TEMPLATE"))
+        r.Static("/assets", os.Getenv("ASSETS"))
+
+        r.GET("/ping", s.pingHandler)
+        r.GET("/", func(c *gin.Context) {
+                c.HTML(http.StatusOK, "form.html", nil)
+        })
+        r.POST("/send_file", s.sendFileHandler)
+
+        return r
+}
+
+func (s *Server) pingHandler(c *gin.Context) {
+        c.JSON(http.StatusOK, gin.H{"ping": "pong"})
+}
+
+func (s *Server) sendFileHandler(c *gin.Context) {
+        file, err := c.FormFile("file")
+        if err != nil {
+                helpers.BadRequestForFile(c, "selecione um arquivo!")
+                return
+        }
+
+        if !helpers.ValidateFile(file) {
+                helpers.BadRequestForFile(c, "arquivo inválido!")
+                return
+        }
+
+        // upload the file
+        <span class="cov8" title="1">tempFiles := os.Getenv("TEMP_FILES")
+        fileName := tempFiles + filepath.Base(uuid.New().String()+".txt")
+        if err := c.SaveUploadedFile(file, fileName); err != nil </span><span class="cov0" title="0">{
+                helpers.BadRequest(c, err)
+                return
+        }</span>
+
+        // counter
+        <span class="cov8" title="1">start := time.Now()
+        // handle file
+        customers := service.SanitizeData(fileName)
+        // save to database
+        repo := repository.NewCustomerRepository(s.DB)
+        records := repo.SaveData(c, customers)
+        // send response
+        seconds := time.Since(start).Seconds()
+        seconds = math.Round(seconds*100) / 100
+        data := types.Data{Seconds: seconds, Records: records}
+        c.HTML(http.StatusCreated, "result.html", gin.H{"data": data})</span>
+}
+</pre>
+		
+		</div>
+	</body>
+</html>

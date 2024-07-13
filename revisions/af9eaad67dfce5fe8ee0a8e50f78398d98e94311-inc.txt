@@ -1,0 +1,4 @@
+example.com/mamude/internal/server/routes.go:19:	RegisterRoutes	0.0%
+example.com/mamude/internal/server/routes.go:34:	pingHandler	0.0%
+example.com/mamude/internal/server/routes.go:38:	sendFileHandler	84.6%
+total:							(statements)	84.6%

@@ -1,12 +1,14 @@
 # Simple Makefile for a Go project
+POSTGRESQL_URL=postgres://admin:admin@localhost:5432/neoway?sslmode=disable
 
-# Build the application
-all: tools build
-
+# Migration tool
 tools:
 	@curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.1/migrate.linux-386.tar.gz | tar xvz -C bin
 
-build:
+# Build the application
+build-app: tools docker-run
+
+build-local:
 	@echo "Building..."
 	@go build -o bin/main cmd/api/main.go
 
@@ -24,12 +26,11 @@ docker-down:
 
 
 # Migrate DB
-POSTGRESQL_URL=postgres://admin:admin@localhost:5432/neoway?sslmode=disable
 migrate-up:
-	@./bin/migrate -database ${POSTGRESQL_URL} -path db/migrations up
+	@./bin/migrate -database $(POSTGRESQL_URL) -path db/migrations up
 
 migrate-down:
-	@./bin/migrate -database ${POSTGRESQL_URL} -path db/migrations down
+	@./bin/migrate -database $(POSTGRESQL_URL) -path db/migrations down
 
 
 # Test the application

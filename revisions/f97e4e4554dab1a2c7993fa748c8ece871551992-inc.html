@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Expires" content="0" />
+		<title>repository: Go Coverage Report</title>
+		<script src="../index.js?ad79d67a7b27030a910cdcdaaaf1e441"></script>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">example.com/mamude/internal/repository/customer.go (10.0%)</option>
+				
+				<option value="file1">example.com/mamude/internal/types/customer.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package repository
+
+import (
+        "example.com/mamude/internal/database"
+        "example.com/mamude/internal/helpers"
+        "example.com/mamude/internal/types"
+        "github.com/gin-gonic/gin"
+        "github.com/jackc/pgx/v5"
+)
+
+type CustomerRepository struct {
+        db database.PgxIface
+}
+
+func NewCustomerRepository(db database.PgxIface) *CustomerRepository {
+        return &amp;CustomerRepository{
+                db: db,
+        }
+}
+
+func (c *CustomerRepository) SaveData(ctx *gin.Context, customers []types.Customer) int64 {
+        // tratar os dados e validá-los
+        if len(customers) &gt; 0 {
+                var customersValid []types.Customer
+                for _, customer := range customers <span class="cov0" title="0">{
+                        changedCustomer := &amp;customer
+                        changedCustomer.ValidateCPF(customer.CPF)
+                        changedCustomer.ValidateMostFrequentStore(customer.MostFrequentStore)
+                        changedCustomer.ValidateLastPurchaseStore(customer.LastPurchaseStore)
+                        customersValid = append(customersValid, customer)
+                }</span>
+
+                // enviar os dados em batch, otimizando o desempenho
+                // https://pkg.go.dev/github.com/jackc/pgx/v5@v5.3.0#hdr-Copy_Protocol
+                <span class="cov0" title="0">copyCount, err := c.db.CopyFrom(
+                        ctx,
+                        pgx.Identifier{"customers"},
+                        []string{
+                                "cpf",
+                                "private",
+                                "incomplete",
+                                "date_last_purchase",
+                                "average_ticket",
+                                "last_purchase_ticket",
+                                "most_frequent_store",
+                                "last_purchase_store",
+                        },
+                        pgx.CopyFromSlice(len(customers), func(i int) ([]any, error) </span><span class="cov0" title="0">{
+                                return []any{
+                                        customersValid[i].CPF,
+                                        customersValid[i].Private,
+                                        customersValid[i].Incomplete,
+                                        customersValid[i].DateLastPurchase,
+                                        customersValid[i].AverageTicket,
+                                        customersValid[i].LastPurchaseTicket,
+                                        customersValid[i].MostFrequentStore,
+                                        customersValid[i].LastPurchaseStore,
+                                }, nil
+                        }</span>),
+                )
+                <span class="cov0" title="0">helpers.CheckDBError(err)
+                return copyCount</span>
+        } else<span class="cov8" title="1"> {
+                return 0
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package types
+
+import (
+        "fmt"
+        "time"
+
+        "example.com/mamude/internal/helpers"
+)
+
+type Customer struct {
+        CPF                string
+        Private            int
+        Incomplete         int
+        DateLastPurchase   time.Time
+        AverageTicket      float64
+        LastPurchaseTicket float64
+        MostFrequentStore  string
+        LastPurchaseStore  string
+}
+
+func (c *Customer) ValidateCPF(value string) <span class="cov0" title="0">{
+        cpf := helpers.NewCPF(value)
+        if !cpf.IsValid() </span><span class="cov0" title="0">{
+                c.CPF = "invalid"
+        }</span> else<span class="cov0" title="0"> {
+                validCpf := fmt.Sprintf("%v", cpf)
+                c.CPF = validCpf
+        }</span>
+}
+
+func (c *Customer) ValidateMostFrequentStore(value string) <span class="cov0" title="0">{
+        cnpj := helpers.NewCNPJ(value)
+        if !cnpj.IsValid() </span><span class="cov0" title="0">{
+                c.MostFrequentStore = "invalid"
+        }</span> else<span class="cov0" title="0"> {
+                validCnpj := fmt.Sprintf("%v", cnpj)
+                c.MostFrequentStore = validCnpj
+        }</span>
+}
+
+func (c *Customer) ValidateLastPurchaseStore(value string) <span class="cov0" title="0">{
+        cnpj := helpers.NewCNPJ(value)
+        if !cnpj.IsValid() </span><span class="cov0" title="0">{
+                c.LastPurchaseStore = "invalid"
+        }</span> else<span class="cov0" title="0"> {
+                validCnpj := fmt.Sprintf("%v", cnpj)
+                c.LastPurchaseStore = validCnpj
+        }</span>
+}
+</pre>
+		
+		</div>
+	</body>
+</html>

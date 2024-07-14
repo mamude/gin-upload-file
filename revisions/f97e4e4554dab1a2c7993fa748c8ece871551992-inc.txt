@@ -1,0 +1,6 @@
+example.com/mamude/internal/repository/customer.go:15:	NewCustomerRepository		0.0%
+example.com/mamude/internal/repository/customer.go:21:	SaveData			10.0%
+example.com/mamude/internal/types/customer.go:21:	ValidateCPF			0.0%
+example.com/mamude/internal/types/customer.go:31:	ValidateMostFrequentStore	0.0%
+example.com/mamude/internal/types/customer.go:41:	ValidateLastPurchaseStore	0.0%
+total:							(statements)			4.0%

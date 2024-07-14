@@ -29,7 +29,7 @@ ENV GIN_MODE=release
 ENV PORT=8080
 ENV TEMPLATE=/home/appuser/app/cmd/web/templates/*
 ENV ASSETS=/home/appuser/app/cmd/web/assets
-ENV TEMP_FILES=/home/appuser/app/temp
+ENV TEMP_FILES=/home/appuser/app/tmp/
 
 # Configurar ports
 EXPOSE 8080

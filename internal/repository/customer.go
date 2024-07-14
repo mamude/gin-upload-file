@@ -23,9 +23,10 @@ func (c *CustomerRepository) SaveData(ctx *gin.Context, customers []types.Custom
 	if len(customers) > 0 {
 		var customersValid []types.Customer
 		for _, customer := range customers {
-			customer.ValidateCPF(customer.CPF)
-			customer.ValidateMostFrequentStore(customer.MostFrequentStore)
-			customer.ValidateLastPurchaseStore(customer.LastPurchaseStore)
+			changedCustomer := &customer
+			changedCustomer.ValidateCPF(customer.CPF)
+			changedCustomer.ValidateMostFrequentStore(customer.MostFrequentStore)
+			changedCustomer.ValidateLastPurchaseStore(customer.LastPurchaseStore)
 			customersValid = append(customersValid, customer)
 		}
 

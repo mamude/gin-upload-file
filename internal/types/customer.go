@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	"example.com/mamude/internal/helpers"
@@ -21,22 +22,28 @@ func (c *Customer) ValidateCPF(value string) {
 	cpf := helpers.NewCPF(value)
 	if !cpf.IsValid() {
 		c.CPF = "invalid"
+	} else {
+		validCpf := fmt.Sprintf("%v", cpf)
+		c.CPF = validCpf
 	}
-	c.CPF = cpf.String()
 }
 
 func (c *Customer) ValidateMostFrequentStore(value string) {
 	cnpj := helpers.NewCNPJ(value)
 	if !cnpj.IsValid() {
 		c.MostFrequentStore = "invalid"
+	} else {
+		validCnpj := fmt.Sprintf("%v", cnpj)
+		c.MostFrequentStore = validCnpj
 	}
-	c.MostFrequentStore = cnpj.String()
 }
 
 func (c *Customer) ValidateLastPurchaseStore(value string) {
 	cnpj := helpers.NewCNPJ(value)
 	if !cnpj.IsValid() {
 		c.LastPurchaseStore = "invalid"
+	} else {
+		validCnpj := fmt.Sprintf("%v", cnpj)
+		c.LastPurchaseStore = validCnpj
 	}
-	c.LastPurchaseStore = cnpj.String()
 }

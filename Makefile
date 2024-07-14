@@ -3,6 +3,7 @@ POSTGRESQL_URL=postgres://admin:admin@localhost:5432/neoway?sslmode=disable
 
 # Migration tool
 tools:
+	@mkdir bin
 	@curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.1/migrate.linux-386.tar.gz | tar xvz -C bin
 
 # Build the application

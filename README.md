@@ -37,8 +37,8 @@ make tools
 
 ### Build the application
 ```bash
-build-app make
-build-local make
+make build-app
+make build-local
 ```
 
 ### Run the application
